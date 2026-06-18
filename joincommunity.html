@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Join the Matcha cricket community today.">
+    <meta name="theme-color" content="#2D8B7A">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <title>Join Matcha Community</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="logo">
+            <a href="/">
+                <img src="/assets/newlogo.png?v=3" alt="Matcha" />
+            </a>
+        </div>
+
+        <!-- Hamburger -->
+        <input type="checkbox" id="menu-toggle" />
+        <label for="menu-toggle" class="menu-icon"><i class="fas fa-bars"></i></label>
+
+        <nav class="menu">
+            <a href="/">HOME</a>
+            <a href="/#WHYMATCHA">WHY MATCHA</a>
+            <a href="/#PRICING">PRICING</a>
+            <a href="/#DOWNLOAD" class="download-btn">DOWNLOAD</a>
+        </nav>
+    </header>
+    <!-- Search icon removed - non-functional -->
+
+    <!-- Form Section -->
+    <section class="join-modal">
+        <div class="join-modal-box">
+            <div class="join-header-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h2>Join Matcha Community</h2>
+            <p>Be part of the fastest growing cricket network</p>
+
+            <form id="join-form">
+                <label class="field-label">I am a *</label>
+                <select required>
+                    <option value="">Select</option>
+                    <option>Student</option>
+                    <option>Coach</option>
+                </select>
+
+                <label class="field-label">Where did you hear about us? *</label>
+                <select required>
+                    <option value="">Select</option>
+                    <option>Instagram</option>
+                    <option>Friend</option>
+                    <option>Google</option>
+                    <option>Other</option>
+                </select>
+
+                <label class="field-label">Message</label>
+                <textarea placeholder="Your message"></textarea>
+
+                <input type="text" placeholder="Full Name *" required>
+                <input type="email" placeholder="Email Address *" required>
+                <input type="tel" placeholder="Mobile Number (with country code) *" required>
+
+                <button type="submit">Join Now</button>
+            </form>
+        </div>
+    </section>
+
+  <!-- FOOTER -->
+  <footer id="CONTACT" class="footer-section">
+    <div class="footer-container">
+      <!-- LOGO AND TAGLINE -->
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="/assets/newlogo.png?v=3" alt="Matcha" />
+        </div>
+        <p class="footer-tagline">Performance, insights & live match engagement.</p>
+      </div>
+
+      <!-- FOOTER LINKS -->
+      <div class="footer-links">
+        <a href="/about-us/">About Us</a>
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms-conditions/">Terms&Conditions</a>
+        <a href="#CONTACT" class="footer-contact-link">Contact</a>
+      </div>
+
+      <!-- SOCIAL ICONS -->
+      <div class="footer-social">
+        <h4 class="follow-us-text">Follow Us</h4>
+        <div class="social-icons-wrapper">
+          <a href="https://www.facebook.com/cricalgorithmics" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="https://www.linkedin.com/company/tvconal/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="https://x.com/tvconal" target="_blank" rel="noopener" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+          <a href="https://www.youtube.com/channel/UCHox09Cv3_SWy7SJYuKof7A" target="_blank" rel="noopener" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- COPYRIGHT -->
+    <div class="footer-bottom">
+      <p>Copyright <span>Matcha</span>, All Rights Reserved</p>
+    </div>
+  </footer>
+
+    <!-- Contact Form Modal -->
+    <div id="contact-modal" class="contact-modal">
+        <div class="contact-modal-content">
+            <button class="contact-modal-close" id="close-contact-modal">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="contact-modal-header">
+                <h2>Contact Us</h2>
+                <p>Get in touch with us. We'd love to hear from you!</p>
+            </div>
+            <form id="contact-form" class="contact-form">
+                <div class="form-group">
+                    <label for="contact-name">Full Name *</label>
+                    <input type="text" id="contact-name" name="name" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-email">Email Address *</label>
+                    <input type="email" id="contact-email" name="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-phone">Phone Number</label>
+                    <input type="tel" id="contact-phone" name="phone" placeholder="Enter your phone number with country code">
+                </div>
+                <div class="form-group">
+                    <label for="contact-subject">Subject *</label>
+                    <input type="text" id="contact-subject" name="subject" placeholder="What is this regarding?" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-message">Message *</label>
+                    <textarea id="contact-message" name="message" rows="5" placeholder="Tell us more..." required></textarea>
+                </div>
+                <button type="submit" class="contact-submit-btn">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

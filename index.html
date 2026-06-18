@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Matcha - AI-powered cricket analysis app. Track ball speed, bowling mechanics, and batting KPIs. Train smarter with real-time performance insights." />
+  <meta name="keywords" content="cricket, analysis, AI, ball tracking, bowling speed, batting KPI, coaching, matcha" />
+  <meta name="author" content="Matcha" />
+  <meta name="theme-color" content="#1cae81" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
+
+  <!-- Wētā-style: critical path so first paint is splash only (before style.css) -->
+  <style id="page-loader-critical">
+    body.page-loading {
+      overflow: hidden !important;
+      background: #111 !important;
+      min-height: 100vh !important;
+    }
+    /* Like wetafx .rootNode { display: none } — no flash of hero/nav under overlay */
+    body.page-loading > *:not(#page-loader) {
+      visibility: hidden !important;
+    }
+    #page-loader {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 2147483647 !important;
+      margin: 0 !important;
+      overflow: visible !important;
+    }
+    /* Ref: #111 field, three 1px #1cae81 verticals, soft radial glow, white square + MATCHA */
+    #page-loader .page-loader__bg {
+      position: absolute !important;
+      inset: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: visible !important;
+      background-color: #111 !important;
+    }
+    #page-loader .page-loader__ambient {
+      position: absolute !important;
+      inset: 0 !important;
+      z-index: 0 !important;
+      pointer-events: none !important;
+      opacity: 0 !important;
+      overflow: visible !important;
+      transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    #page-loader.page-loader--show-grid .page-loader__ambient {
+      opacity: 1 !important;
+    }
+    #page-loader .page-loader__glow-ring {
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      width: min(160vmin, 2000px) !important;
+      height: min(160vmin, 2000px) !important;
+      transform: translate(-50%, -50%) !important;
+      z-index: 0 !important;
+      pointer-events: none !important;
+      filter: blur(60px) !important;
+      background: radial-gradient(
+        circle at 50% 50%,
+        rgba(28, 174, 129, 0.42) 0%,
+        rgba(28, 174, 129, 0.12) 38%,
+        rgba(28, 174, 129, 0) 68%
+      ) !important;
+    }
+    #page-loader .page-loader__vlines-layer {
+      position: absolute !important;
+      inset: 0 !important;
+      z-index: 2 !important;
+      pointer-events: none !important;
+      background-image: linear-gradient(
+          90deg,
+          transparent 0,
+          transparent calc(25% - 0.5px),
+          rgba(28, 174, 129, 0.15) calc(25% - 0.5px),
+          rgba(28, 174, 129, 0.15) calc(25% + 0.5px),
+          transparent calc(25% + 0.5px)
+        ),
+        linear-gradient(
+          90deg,
+          transparent 0,
+          transparent calc(75% - 0.5px),
+          rgba(28, 174, 129, 0.15) calc(75% - 0.5px),
+          rgba(28, 174, 129, 0.15) calc(75% + 0.5px),
+          transparent calc(75% + 0.5px)
+        ) !important;
+    }
+    /* Center line only: fades in the vertical middle (behind logo + glow) */
+    #page-loader .page-loader__vline-center {
+      position: absolute !important;
+      inset: 0 !important;
+      z-index: 2 !important;
+      pointer-events: none !important;
+      background: linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(50% - 0.5px),
+        rgba(28, 174, 129, 0.15) calc(50% - 0.5px),
+        rgba(28, 174, 129, 0.15) calc(50% + 0.5px),
+        transparent calc(50% + 0.5px)
+      ) !important;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        #000 0%,
+        #000 24%,
+        transparent 38%,
+        transparent 62%,
+        #000 76%,
+        #000 100%
+      ) !important;
+      mask-image: linear-gradient(
+        to bottom,
+        #000 0%,
+        #000 24%,
+        transparent 38%,
+        transparent 62%,
+        #000 76%,
+        #000 100%
+      ) !important;
+      -webkit-mask-size: 100% 100% !important;
+      mask-size: 100% 100% !important;
+    }
+    #page-loader .page-loader__stage {
+      position: relative !important;
+      z-index: 3 !important;
+      width: 200px !important;
+      height: 200px !important;
+      flex-shrink: 0 !important;
+    }
+    #page-loader .page-loader__video {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 200px !important;
+      height: 200px !important;
+      object-fit: contain !important;
+      pointer-events: none !important;
+      opacity: 1 !important;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #page-loader .page-loader__ambient {
+        opacity: 1 !important;
+        transition: none !important;
+      }
+    }
+  </style>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Matcha - AI Cricket Analysis" />
+  <meta property="og:description"
+    content="Train smarter with AI-powered motion tracking, ball speed analysis, and performance KPIs." />
+  <meta property="og:image" content="assets/logo-200.png" />
+
+  <link rel="stylesheet" href="style.css?v=125" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <title>Matcha - AI Cricket Analysis & Performance Tracking</title>
+  <script>
+    /* Homepage: default to mockup (dark + #111 + green header) unless user saved "light" */
+    (function () {
+      var t = localStorage.getItem('theme');
+      if (t !== 'light') document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+</head>
+
+<body class="page-home page-loading">
+  <div id="page-loader" class="page-loader" role="status" aria-live="polite" aria-label="Loading">
+    <div class="page-loader__bg">
+      <div class="page-loader__ambient">
+        <div class="page-loader__glow-ring" aria-hidden="true"></div>
+      </div>
+      <div class="page-loader__stage">
+        <video
+          class="page-loader__video"
+          id="page-loader-video"
+          muted
+          playsinline
+          autoplay
+          preload="auto"
+          disablePictureInPicture
+          aria-hidden="true"
+        >
+          <source src="assets/Logo_Match_.webm" type="video/webm" />
+        </video>
+      </div>
+    </div>
+  </div>
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <img src="/assets/newlogo.png?v=3" alt="Matcha" />
+      </a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="nav-menu" id="nav-menu">
+        <a href="#features">Features</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#match-center">Match Center</a>
+        <a href="#pricing">Pricing</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+          <i class="fas fa-moon"></i>
+          <i class="fas fa-sun"></i>
+        </button>
+        <!-- <a href="#download" class="nav-cta">Download App</a> -->
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="hero-particles" class="hero-particles"></canvas>
+    <div class="hero-glass-overlay"></div>
+    <div class="hero-container">
+      <div class="hero-content scroll-reveal">
+        <div class="hero-badge">AI-Powered Cricket Analysis</div>
+        <h1>Your Personal <span class="text-gradient">Cricket Coach</span> in Your Pocket</h1>
+        <p class="hero-subtitle">
+          Track ball speed, analyze bowling mechanics, measure batting KPIs, and share insights with coaches
+          &mdash; all from your phone camera.
+        </p>
+
+        <div class="hero-cta">
+          <a href="https://apps.apple.com/in/app/matcha-cricket-network/id6753956643" target="_blank" rel="noopener">
+            <img src="/assets/Appstore.png" alt="Download on App Store" class="store-badge" />
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.matcha.android&hl=en_IN" target="_blank"
+            rel="noopener">
+            <img src="/assets/googlestore.png" alt="Get it on Google Play" class="store-badge" />
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <strong>10K+</strong>
+            <span>Deliveries Analyzed</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <strong>500+</strong>
+            <span>Active Players</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <strong>4.8</strong>
+            <span>App Rating</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-phone-ambient" data-hero-phone-reveal>
+          <div class="hero-phone-inner">
+          <div class="phone-mockup phone-mockup--hero-frame">
+            <div class="phone-mockup-screens phone-mockup-screens--hero" data-hero-slideshow aria-hidden="true">
+              <div class="phone-mockup-track" data-hero-track>
+                <video class="phone-mockup-slide" muted playsinline loop preload="metadata" src="/assets/1.%20speed%20meter.webm"></video>
+                <video class="phone-mockup-slide" muted playsinline loop preload="metadata" src="/assets/2.%20angle.webm"></video>
+                <video class="phone-mockup-slide" muted playsinline loop preload="metadata" src="/assets/3.%20ball%20length%20etc.webm"></video>
+                <video class="phone-mockup-slide" muted playsinline loop preload="metadata" src="/assets/4.%20new%20batsman.webm"></video>
+              </div>
+            </div>
+            <img class="phone-mockup-frame" src="/assets/phone%20front%20view.png?v=2" alt="" width="1080" height="1920" decoding="async" />
+          </div>
+          </div>
+        </div>
+        <div class="hero-glow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="features-section">
+    <div class="features-dots-bg" data-features-dots aria-hidden="true"></div>
+    <img
+      class="features-stroke-bg"
+      data-features-stroke
+      src="/assets/baller%20copy.webp"
+      alt=""
+      aria-hidden="true"
+      decoding="async" />
+    <div class="section-container">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Why Matcha</span>
+        <h2>Everything You Need to <span class="text-gradient">Level Up</span></h2>
+        <p>From AI-powered video analysis to a thriving cricket community.</p>
+      </div>
+
+      <div class="features-grid" data-scroll-reveal-group>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-video"></i>
+          </div>
+          <h3>AI Video Analysis</h3>
+          <p>Record your sessions, and let AI extract ball speed, trajectory, arm-neck angle, and shot type automatically.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Performance KPIs</h3>
+          <p>Track bowling speed, batting beehive, pitch maps, and a large array of analytics to measure your improvement over time.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-cut"></i>
+          </div>
+          <h3>Auto-Clip Generation</h3>
+          <p>Every delivery is automatically clipped into 4-second segments for easy review and sharing.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Cricket Community</h3>
+          <p>Follow players and coaches, share highlights, and get discovered by scouts and teams.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chalkboard-teacher"></i>
+          </div>
+          <h3>Coach Integration</h3>
+          <p>Coaches can review sessions, compare players, and provide feedback directly through the app.</p>
+        </div>
+
+        <!-- <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-id-card"></i>
+          </div>
+          <h3>Cricket Resume</h3>
+          <p>Build your cricket profile with stats, achievements, and video portfolio for scouts and selectors.</p>
+        </div> -->
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <img
+      class="howitworks-stroke-bg"
+      data-hiw-stroke
+      src="/assets/batter%20copy.webp"
+      alt=""
+      aria-hidden="true"
+      decoding="async" />
+    <div class="section-container">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">How It Works</span>
+        <h2>Start Improving in <span class="text-gradient">3 Simple Steps</span></h2>
+      </div>
+
+      <div class="steps-grid scroll-reveal-steps">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <h3>Record Your Session</h3>
+          <p>Set up your phone on a tripod behind the stumps. Matcha auto-calibrates and records your bowling or batting session.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <h3>AI Analyzes Every Delivery</h3>
+          <p>Our AI tracks ball trajectory, speed, spin, and biomechanics to generate detailed KPIs for each delivery.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <h3>Review & Improve</h3>
+          <p>Watch delivery clips from your gallery, compare sessions, share with coaches, and track your improvement over weeks and months.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYTICS DEEP DIVE -->
+  <section id="analytics" class="analytics-section">
+    <div class="section-container">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Performance Analytics</span>
+        <h2>Data-Driven Insights for <span class="text-gradient">Every Delivery</span></h2>
+        <p>
+          Matcha measures what matters. From ball speed and run-up pace to foot placement and arm angle,
+          get professional-grade analysis from your phone.
+        </p>
+      </div>
+
+      <div class="analytics-grid" data-scroll-reveal-group>
+        <div class="analytics-card">
+          <div class="analytics-card-icon"><i class="fas fa-tachometer-alt"></i></div>
+          <h4>Ball Speed &amp; Run-Up Speed</h4>
+          <p>Measure pace in real-time with AI motion tracking</p>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-card-icon"><i class="fas fa-crosshairs"></i></div>
+          <h4>Pitch Map &amp; Beehive</h4>
+          <p>Visualize where you're bowling and where you're scoring</p>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-card-icon"><i class="fas fa-ruler-combined"></i></div>
+          <h4>Body Mechanics</h4>
+          <p>Track arm-neck angle, foot distance, and bowling action</p>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-card-icon"><i class="fas fa-file-pdf"></i></div>
+          <h4>PDF Reports</h4>
+          <p>Export session comparisons and share with coaches</p>
+        </div>
+      </div>
+      <div class="match-phones" data-scroll-reveal-group>
+        <div class="phone-mockup phone-mockup-sm is-image-frame">
+          <img class="phone-mockup-screen-img" src="assets/BallSpeed.jpg" alt="PDF session report with delivery comparisons" loading="lazy" decoding="async" />
+          <img class="phone-mockup-frame" src="assets/phone.png" alt="" />
+        </div>
+        <div class="phone-mockup phone-mockup-sm is-image-frame">
+          <img class="phone-mockup-screen-img" src="assets/Pitch_Map.jpeg" alt="PDF session report with delivery comparisons" loading="lazy" decoding="async" />
+          <img class="phone-mockup-frame" src="assets/phone.png" alt="" />
+        </div>
+        <div class="phone-mockup phone-mockup-sm is-image-frame">
+          <img class="phone-mockup-screen-img" src="assets/Body Mechanics.jpg" alt="PDF session report with delivery comparisons" loading="lazy" decoding="async" />
+          <img class="phone-mockup-frame" src="assets/phone.png" alt="" />
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATCH CENTER -->
+  <section id="match-center" class="match-center-section">
+    <div class="features-dots-bg" aria-hidden="true"></div>
+    <div class="section-container">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Match Center</span>
+        <h2>Live Cricket at Your <span class="text-gradient">Fingertips</span></h2>
+        <p>Follow live scores, win probability, articles, and upcoming streaming features.</p>
+      </div>
+
+      <div class="match-grid" data-scroll-reveal-group>
+        <div class="match-card">
+          <div class="match-card-icon"><i class="fas fa-broadcast-tower"></i></div>
+          <h4>Live Scorecard</h4>
+          <p>Ball-by-ball updates with detailed batting and bowling stats.</p>
+        </div>
+        <div class="match-card">
+          <div class="match-card-icon"><i class="fas fa-percentage"></i></div>
+          <h4>Win Probability</h4>
+          <p>Dynamic win chances updated every delivery with AI predictions.</p>
+        </div>
+        <div class="match-card">
+          <div class="match-card-icon"><i class="fas fa-newspaper"></i></div>
+          <h4>Articles</h4>
+          <p>Read AI-generated match previews, reviews, and cricket insights.</p>
+        </div>
+        <div class="match-card">
+          <div class="match-card-icon"><i class="fas fa-play-circle"></i></div>
+          <h4>Streaming <sup>* (Coming Soon)</sup></h4>
+          <p>Watch live cricket streams directly within Matcha.</p>
+        </div>
+      </div>
+
+      <div class="match-phones" data-scroll-reveal-group>
+        <div class="phone-mockup phone-mockup-sm is-image-frame">
+          <img class="phone-mockup-screen-img" src="assets/Live_Scorecard.jpeg" alt="Live Scorecard" />
+          <img class="phone-mockup-frame" src="assets/phone.png" alt="" />
+        </div>
+        <div class="phone-mockup phone-mockup-sm is-image-frame">
+          <img class="phone-mockup-screen-img" src="assets/Match_Prediction.jpeg" alt="Win Probability" />
+          <img class="phone-mockup-frame" src="assets/phone.png" alt="" />
+        </div>
+        <div class="phone-mockup phone-mockup-sm is-image-frame">
+          <img class="phone-mockup-screen-img" src="assets/Match_Articles.jpeg" alt="Articles" />
+          <img class="phone-mockup-frame" src="assets/phone.png" alt="" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAYER PROFILE -->
+  <section class="profile-section">
+    <div class="section-container">
+      <div class="profile-layout">
+        <div class="profile-images scroll-reveal">
+          <img src="/assets/profileImage.jpg" alt="Player Profile Card" class="profile-card-img" />
+          <img src="/assets/Net_Image.jpeg" alt="Cricket Net Training" class="profile-net-img" />
+        </div>
+        <div class="profile-content scroll-reveal">
+          <span class="section-tag">Cricket Resume</span>
+          <h2>Your Digital <span class="text-gradient">Cricket Identity</span></h2>
+          <ul class="profile-list">
+            <li><i class="fas fa-check-circle"></i> Build a detailed profile with stats, achievements, and video highlights</li>
+            <li><i class="fas fa-check-circle"></i> Showcase your skills to scouts, teams, and coaches worldwide</li>
+            <li><i class="fas fa-check-circle"></i> Get discovered for club and professional cricket opportunities</li>
+            <li><i class="fas fa-check-circle"></i> Track your performance trends across seasons</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="pricing-section">
+    <div class="section-container">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Pricing</span>
+        <h2>Simple, Transparent <span class="text-gradient">Pricing</span></h2>
+        <p>Choose the plan that fits how you play, coach, or run cricket.</p>
+      </div>
+
+      <!-- DESKTOP: COMPARISON TABLE -->
+      <div class="pricing-table-wrap scroll-reveal">
+        <table class="pricing-table">
+          <thead>
+            <tr>
+              <th class="pt-feature-col">Feature</th>
+              <th>
+                <div class="pt-plan-head">
+                  <div class="pt-plan-name">Free</div>
+                  <div class="pt-plan-desc">Start training smarter</div>
+                </div>
+                <div class="pt-plan-price"><span class="pt-currency">S$</span><span class="pt-amount">0</span></div>
+              </th>
+              <th>
+                <div class="pt-plan-head">
+                  <div class="pt-plan-name">Individual</div>
+                  <div class="pt-plan-desc">Unlock your full potential</div>
+                </div>
+                <div class="pt-plan-price"><span class="pt-currency">S$</span><span class="pt-amount">10</span><span class="pt-period">/ mo</span></div>
+              </th>
+              <th class="pt-featured">
+                <div class="pt-popular">Most Popular</div>
+                <div class="pt-plan-head">
+                  <div class="pt-plan-name">Coach</div>
+                  <div class="pt-plan-desc">Develop players at scale</div>
+                </div>
+                <div class="pt-plan-price"><span class="pt-currency">S$</span><span class="pt-amount">90</span><span class="pt-period">/ mo</span></div>
+              </th>
+              <th>
+                <div class="pt-plan-head">
+                  <div class="pt-plan-name">Enterprise</div>
+                  <div class="pt-plan-desc">Power your academy</div>
+                </div>
+                <div class="pt-plan-price"><span class="pt-currency">S$</span><span class="pt-amount">600+</span><span class="pt-period">/ mo</span></div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="pt-section"><td colspan="5">Usage</td></tr>
+            <tr>
+              <td>Deliveries / month</td>
+              <td>100</td><td>500</td><td class="pt-featured">5,000</td><td>80,000</td>
+            </tr>
+            <tr>
+              <td>Sessions</td>
+              <td>Limited</td><td>Unlimited</td><td class="pt-featured">Unlimited</td><td>Unlimited</td>
+            </tr>
+            <tr>
+              <td>Multi-device session login</td>
+              <td>1 device</td><td>Unlimited</td><td class="pt-featured">Unlimited</td><td>Unlimited</td>
+            </tr>
+            <tr>
+              <td>Nets</td>
+              <td>1</td><td>Unlimited</td><td class="pt-featured">Unlimited</td><td>Unlimited</td>
+            </tr>
+            <tr>
+              <td>Storage</td>
+              <td>1 GB</td><td>5 GB</td><td class="pt-featured">50 GB</td><td>800 GB</td>
+            </tr>
+
+            <tr class="pt-section"><td colspan="5">Analysis Features</td></tr>
+            <tr>
+              <td>Clipping</td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Speed</td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Annotation <span class="pt-hint">Comments · Editing · Screenshot</span></td>
+              <td>Comments</td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Bowling modes <span class="pt-hint">Bowler · Machine · Throw Down</span></td>
+              <td>Bowler</td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Bowling analysis <span class="pt-hint">Swing · Spin · Speed</span></td>
+              <td>Speed</td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Biomechanics <span class="pt-hint">Arm angle · Posture · Elbow</span></td>
+              <td><i class="fas fa-times pt-no"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Batting analysis <span class="pt-hint">Balance · Shot Type</span></td>
+              <td><i class="fas fa-times pt-no"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Reporting <span class="pt-hint">Beehive · Pitch Map</span></td>
+              <td><i class="fas fa-times pt-no"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Export <span class="pt-hint">CSV · Video Download</span></td>
+              <td><i class="fas fa-times pt-no"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+
+            <tr class="pt-section"><td colspan="5">Sharing &amp; Collaboration</td></tr>
+            <tr>
+              <td>Sharing within App</td>
+              <td><i class="fas fa-times pt-no"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Network sharing</td>
+              <td><i class="fas fa-times pt-no"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Player tagging <span class="pt-hint">Multi-player sessions</span></td>
+              <td><i class="fas fa-minus pt-na"></i></td>
+              <td>Self only</td>
+              <td class="pt-featured"><i class="fas fa-check pt-yes"></i></td>
+              <td><i class="fas fa-check pt-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Delivery rollover <span class="pt-hint">Unused analysis to next month</span></td>
+              <td><i class="fas fa-minus pt-na"></i></td>
+              <td><span class="pt-soon">Coming soon</span></td>
+              <td class="pt-featured"><span class="pt-soon">Coming soon</span></td>
+              <td><span class="pt-soon">Coming soon</span></td>
+            </tr>
+            <tr>
+              <td>Plan suspension <span class="pt-hint">Pause for 1 month</span></td>
+              <td><i class="fas fa-minus pt-na"></i></td>
+              <td><span class="pt-soon">Coming soon</span></td>
+              <td class="pt-featured"><span class="pt-soon">Coming soon</span></td>
+              <td><span class="pt-soon">Coming soon</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- MOBILE: CARD FALLBACK -->
+      <div class="pricing-grid pricing-cards-mobile" data-scroll-reveal-group>
+        <div class="price-card">
+          <h3>Free</h3>
+          <p class="price-desc">Start training smarter</p>
+          <div class="price-amount">
+            <span class="price-currency">S$</span>
+            <span class="price-value">0</span>
+          </div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> 100 deliveries / month</li>
+            <li><i class="fas fa-check"></i> 1 device · 1 net · 1 GB storage</li>
+            <li><i class="fas fa-check"></i> Clipping, Speed &amp; Comments</li>
+            <li><i class="fas fa-check"></i> Bowler mode · Speed analysis</li>
+          </ul>
+        </div>
+
+        <div class="price-card">
+          <h3>Individual</h3>
+          <p class="price-desc">Unlock your full potential</p>
+          <div class="price-amount">
+            <span class="price-currency">S$</span>
+            <span class="price-value">10</span>
+            <span class="price-period">/ month</span>
+          </div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> 500 deliveries / month</li>
+            <li><i class="fas fa-check"></i> Unlimited sessions, devices &amp; nets</li>
+            <li><i class="fas fa-check"></i> Full analysis suite &amp; export</li>
+            <li><i class="fas fa-check"></i> Sharing within app &amp; network</li>
+            <li><i class="fas fa-check"></i> 5 GB storage</li>
+          </ul>
+        </div>
+
+        <div class="price-card price-card-featured">
+          <div class="price-popular">Most Popular</div>
+          <h3>Coach</h3>
+          <p class="price-desc">Develop players at scale</p>
+          <div class="price-amount">
+            <span class="price-currency">S$</span>
+            <span class="price-value">90</span>
+            <span class="price-period">/ month</span>
+          </div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> 5,000 deliveries / month</li>
+            <li><i class="fas fa-check"></i> Multi-player tagging</li>
+            <li><i class="fas fa-check"></i> Full analysis suite &amp; export</li>
+            <li><i class="fas fa-check"></i> Sharing within app &amp; network</li>
+            <li><i class="fas fa-check"></i> 50 GB storage</li>
+          </ul>
+        </div>
+
+        <div class="price-card">
+          <h3>Enterprise</h3>
+          <p class="price-desc">Power your academy</p>
+          <div class="price-amount">
+            <span class="price-currency">S$</span>
+            <span class="price-value">600+</span>
+            <span class="price-period">/ month</span>
+          </div>
+          <ul class="price-features">
+            <li><i class="fas fa-check"></i> 80,000 deliveries / month</li>
+            <li><i class="fas fa-check"></i> Multi-player tagging at club scale</li>
+            <li><i class="fas fa-check"></i> Full analysis suite &amp; export</li>
+            <li><i class="fas fa-check"></i> Sharing within app &amp; network</li>
+            <li><i class="fas fa-check"></i> 800 GB storage</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD CTA
+  <section id="download" class="download-section">
+    <div class="section-container">
+      <div class="download-layout">
+        <div class="download-content scroll-reveal">
+          <h2>Ready to Train <span class="text-gradient">Smarter?</span></h2>
+          <p>Join thousands of cricketers using AI-powered analysis to improve their game. Download Matcha for free.</p>
+
+          <div class="download-badges">
+            <a href="https://apps.apple.com/in/app/matcha-cricket-network/id6753956643" target="_blank" rel="noopener">
+              <img src="/assets/Appstore.png" alt="Download on App Store" class="store-badge" />
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.matcha.android&hl=en_IN" target="_blank"
+              rel="noopener">
+              <img src="/assets/googlestore.png" alt="Get it on Google Play" class="store-badge" />
+            </a>
+          </div>
+
+          <div class="download-features">
+            <span><i class="fas fa-check-circle"></i> Free to start</span>
+            <span><i class="fas fa-check-circle"></i> No credit card required</span>
+            <span><i class="fas fa-check-circle"></i> iOS & Android</span>
+          </div>
+        </div>
+
+        <div class="download-visual scroll-reveal">
+          <div class="phone-mockup is-image-frame download-phone--focus">
+            <img class="phone-mockup-screen-img" src="/assets/Download-Section.jpg" alt="Matcha App" />
+            <img class="phone-mockup-frame" src="/assets/phone.png" alt="" />
+          </div>
+          <div class="hero-glow"></div>
+        </div>
+      </div>
+    </div>
+  </section> -->
+
+  <!-- FOOTER -->
+  <footer id="contact" class="footer">
+    <div class="footer-container">
+      <div class="footer-top scroll-reveal">
+        <div class="footer-brand">
+          <a href="/" class="footer-logo">
+            <img src="/assets/newlogo.png?v=3" alt="Matcha" />
+          </a>
+          <p>AI-powered cricket analysis for players, coaches, and fans.</p>
+        </div>
+
+        <div class="footer-links-group">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#analytics">Analytics</a>
+          <a href="#match-center">Match Center</a>
+          <a href="#pricing">Pricing</a>
+          <a href="recording-tips.html">Recording Tips</a>
+        </div>
+
+        <div class="footer-links-group">
+          <h4>Company</h4>
+          <a href="/about-us/">About Us</a>
+          <a href="/privacy-policy/">Privacy Policy</a>
+          <a href="/terms-conditions/">Terms & Conditions</a>
+        </div>
+
+        <div class="footer-links-group">
+          <h4>Follow Us</h4>
+          <div class="footer-social">
+            <a href="https://www.facebook.com/cricalgorithmics" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.linkedin.com/company/tvconal/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="https://x.com/tvconal" target="_blank" rel="noopener" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+            <a href="https://www.youtube.com/channel/UCHox09Cv3_SWy7SJYuKof7A" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Matcha. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CONTACT MODAL -->
+  <div class="modal-overlay" id="contact-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
+      <h2>Contact Us</h2>
+      <p>Get in touch. We'd love to hear from you.</p>
+      <form id="contact-form">
+        <div class="form-row">
+          <div class="form-field">
+            <label for="c-name">Full Name *</label>
+            <input type="text" id="c-name" name="name" placeholder="Your name" required />
+          </div>
+          <div class="form-field">
+            <label for="c-email">Email *</label>
+            <input type="email" id="c-email" name="email" placeholder="your@email.com" required />
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="c-subject">Subject *</label>
+          <input type="text" id="c-subject" name="subject" placeholder="What is this about?" required />
+        </div>
+        <div class="form-field">
+          <label for="c-message">Message *</label>
+          <textarea id="c-message" name="message" rows="4" placeholder="Tell us more..." required></textarea>
+        </div>
+        <button type="submit" class="form-submit">Send Message</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCROLL CONTROLS -->
+  <button id="go-down-btn" class="scroll-btn" aria-label="Go to Bottom">
+    <i class="fas fa-chevron-down"></i>
+  </button>
+  <button id="go-top-btn" class="scroll-btn" aria-label="Go to Top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <script src="js/main.js?v=51"></script>
+</body>
+
+</html>
